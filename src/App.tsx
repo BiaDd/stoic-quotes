@@ -1,12 +1,13 @@
 import { useState } from 'react'
+import { Button } from 'primereact/button';
+
 import './App.css'
 
 const STOIC_QUOTE_API_URL = "https://stoic-quotes.com/api/quote"
 const IMAGE_API_URL = "https://picsum.photos/200/300?grayscale"
 
 function App() {
-  const [quote, setQuote] = useState("");
-  const [author, setAuthor] = useState("");
+  const [quoteInfo, setQuoteInfo] = useState({ quote: "", author: "" });
   const [imageUrl, setImageUrl] = useState("");
 
   const getData = async (apiUrl: string) => {
@@ -16,33 +17,34 @@ function App() {
         throw new Error(`Error fetching image, response status: ${response.status}`);
       }
       const json = await response.json();
-      console.log(json);
       return json
     } catch (error: any) {
       console.error(error.message);
     }
   }
 
-  const getQuoteData = async () => {
-    const quote = await getData(STOIC_QUOTE_API_URL)
-    setQuote(quote["text"]);
-    setAuthor(quote["author"]);
+  const getQuoteData = () => {
     const uniqueParam = new Date().getTime(); // Or use any unique value
     setImageUrl(`${IMAGE_API_URL}&time=${uniqueParam}`);
+    setTimeout(async () => {
+      const { text, author } = await getData(STOIC_QUOTE_API_URL)
+      setQuoteInfo(quoteInfo => ({ ...quoteInfo, quote: text, author: author }));
+    }, 1000);
   }
 
   return (
     <>
       <img src={imageUrl}></img>
-      <div>
-        {quote}
+      <div className='quote-text'>
+        <span>
+          {quoteInfo.quote}
+        </span>
         <p>
-          {author}
+          - {quoteInfo.author}
         </p>
       </div>
-      <button onClick={() => getQuoteData()}>
-        Get Quote
-      </button>
+      <Button label="Get Quote" onClick={() => getQuoteData()}
+      />
     </>
   )
 }
